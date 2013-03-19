@@ -196,43 +196,18 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="RayTracer_cuda.cu">
-      <Include Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">./;../../common/inc</Include>
-      <Include Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">./;../../common/inc</Include>
-      <Include Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">./;../../common/inc</Include>
-      <Include Condition="'$(Configuration)|$(Platform)'=='Release|x64'">./;../../common/inc</Include>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">compute_10,sm_10;compute_20,sm_20;compute_30,sm_30;compute_35,sm_35</CodeGeneration>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">compute_10,sm_10;compute_20,sm_20;compute_30,sm_30;compute_35,sm_35</CodeGeneration>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">compute_10,sm_10;compute_20,sm_20;compute_30,sm_30;compute_35,sm_35</CodeGeneration>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_10,sm_10;compute_20,sm_20;compute_30,sm_30;compute_35,sm_35</CodeGeneration>
-      <TargetMachinePlatform Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">64</TargetMachinePlatform>
-      <TargetMachinePlatform Condition="'$(Configuration)|$(Platform)'=='Release|x64'">64</TargetMachinePlatform>
-      <AdditionalCompilerOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </AdditionalCompilerOptions>
-      <AdditionalCompilerOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </AdditionalCompilerOptions>
-      <AdditionalCompilerOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </AdditionalCompilerOptions>
-      <AdditionalCompilerOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </AdditionalCompilerOptions>
-      <Defines Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WIN32</Defines>
-      <Defines Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32</Defines>
-      <Defines Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WIN32</Defines>
-      <Defines Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WIN32</Defines>
-    </CudaCompile>
-    <CudaCompile Include="template_kernel.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </CudaCompile>
+    <CudaCompile Include="source\RayTracer_cuda.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="template_cpu.cpp" />
+    <ClCompile Include="source\geometry.cpp" />
+    <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\Shape.cpp" />
+    <ClCompile Include="source\template_cpu.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RayTracer.h" />
+    <ClInclude Include="source\geometry.h" />
+    <ClInclude Include="source\RayTracer.h" />
+    <ClInclude Include="source\Shape.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

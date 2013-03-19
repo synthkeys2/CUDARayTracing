@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "RayTracer.h"
+#include "geometry.h"
 
 // OpenGL Graphics includes
 #include <GL/glew.h>
@@ -26,7 +28,7 @@ int main(int argc, char** argv)
 {
 	InitializeOpenGL(&argc, argv);
 	glutMainLoop();
-    //runTest(argc, argv);
+    runTest(argc, argv);
 }
 
 void InitializeOpenGL(int* argc, char** argv)
