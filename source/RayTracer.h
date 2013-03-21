@@ -18,6 +18,8 @@
 #define FLT_MAX         3.402823466e+38F
 #define INFINITY		FLT_MAX
 
-extern "C" void runTest(int argc, char **argv);
+#include <vector_types.h>
+
+extern "C" void RunRayTracer(uchar4* dest, const int imageW, const int imageH);
 
 #endif
