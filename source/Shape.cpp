@@ -9,5 +9,5 @@ Sphere::Sphere(Point center, float radius)
 
 bool Sphere::Intersect(Ray* ray, HitInfo* hitInfo)
 {
-
+	return false;
 }

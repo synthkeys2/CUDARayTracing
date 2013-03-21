@@ -10,8 +10,8 @@ public:
 class Shape
 {
 public:
-	Shape();
-	virtual ~Shape();
+	//Shape();
+	//virtual ~Shape();
 
 	virtual bool Intersect(Ray* ray, HitInfo* hitInfo) = 0;
 
