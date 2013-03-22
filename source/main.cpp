@@ -22,6 +22,7 @@
 //#include <helper_cuda_gl.h>
 //#include <rendercheck_gl.h>
 
+void RenderImage();
 
 void Display();
 void Reshape(int w, int h);
@@ -48,10 +49,21 @@ int main(int argc, char** argv)
     //runTest(argc, argv);
 }
 
+void RenderImage()
+{
+	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_pbo_resource, 0));
+	size_t num_bytes;
+	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_Dest, &num_bytes, cuda_pbo_resource));
+
+	RunRayTracer(d_Dest, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+	cudaDeviceSynchronize();
+	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
+}
 
 void Display()
 {
-    //renderImage(true, g_isJuliaSet, precisionMode);
+    RenderImage();
 
     // load texture from PBO
     //  glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, gl_PBO);

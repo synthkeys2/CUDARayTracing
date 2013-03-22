@@ -22,4 +22,5 @@
 
 extern "C" void RunRayTracer(uchar4* dest, const int imageW, const int imageH);
 
+
 #endif
