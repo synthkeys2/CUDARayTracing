@@ -22,7 +22,7 @@ __global__ void RayTracer(uchar4* dest, const int imageW, const int imageH)
 
 	const int pixel = imageW * iy + ix;
 
-	dest[pixel].y = pixel % 255;
+	dest[pixel].y = dest[pixel].y + 1;
 }
 
 

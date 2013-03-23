@@ -17,12 +17,13 @@
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
 
-//#include <helper_functions.h>
+#include <helper_functions.h>
 #include <helper_cuda.h>
 //#include <helper_cuda_gl.h>
 //#include <rendercheck_gl.h>
 
 void RenderImage();
+void ComputeFPS();
 
 void Display();
 void Reshape(int w, int h);
@@ -34,6 +35,7 @@ void TimerEvent(int value);
 void InitializeOpenGL(int* argc, char** argv);
 void InitializeOpenGLBuffers(int w, int h);
 GLuint compileASMShader(GLenum program_type, const char *code);
+void CleanUp();
 
 //OpenGL PBO and texture "names"
 GLuint gl_PBO, gl_Tex, gl_Shader;
@@ -42,11 +44,24 @@ struct cudaGraphicsResource *cuda_pbo_resource; // handles OpenGL-CUDA exchange
 uchar4 *h_Source = NULL;
 uchar4 *d_Dest = NULL;
 
+StopWatchInterface *hTimer = NULL;
+const int frameCheckNumber = 60;
+int fpsCount = 0;        // FPS count for averaging
+int fpsLimit = 15;       // FPS limit for sampling
+unsigned int frameCount = 0;
+
 int main(int argc, char** argv)
 {
 	InitializeOpenGL(&argc, argv);
+
+	sdkCreateTimer(&hTimer);
+	sdkStartTimer(&hTimer);
+
+	atexit(CleanUp);
+
 	glutMainLoop();
-    //runTest(argc, argv);
+
+	cudaDeviceReset();
 }
 
 void RenderImage()
@@ -63,6 +78,8 @@ void RenderImage()
 
 void Display()
 {
+	sdkStartTimer(&hTimer);
+
     RenderImage();
 
     // load texture from PBO
@@ -90,7 +107,28 @@ void Display()
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
+	sdkStopTimer(&hTimer);
     glutSwapBuffers();
+
+	ComputeFPS();
+}
+
+void ComputeFPS()
+{
+	frameCount++;
+    fpsCount++;
+
+    if (fpsCount == fpsLimit)
+    {
+        char fps[256];
+        float ifps = 1.f / (sdkGetAverageTimerValue(&hTimer) / 1000.f);
+        sprintf(fps, "CUDA Ray Tracer %3.1f fps", ifps);
+        glutSetWindowTitle(fps);
+        fpsCount = 0;
+
+        fpsLimit = MAX(1.f, (float)ifps);
+        sdkResetTimer(&hTimer);
+    }
 }
 
 void Reshape(int w, int h)
@@ -258,4 +296,24 @@ GLuint compileASMShader(GLenum program_type, const char *code)
     }
 
     return program_id;
+}
+
+void CleanUp()
+{
+   if (h_Source)
+    {
+        free(h_Source);
+        h_Source = 0;
+    }
+
+    sdkStopTimer(&hTimer);
+    sdkDeleteTimer(&hTimer);
+
+    cudaGraphicsUnregisterResource(cuda_pbo_resource);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+
+    glDeleteBuffers(1, &gl_PBO);
+    glDeleteTextures(1, &gl_Tex);
+    glDeleteProgramsARB(1, &gl_Shader);
+    exit(EXIT_SUCCESS);
 }
