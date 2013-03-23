@@ -55,7 +55,7 @@ void RenderImage()
 	size_t num_bytes;
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_Dest, &num_bytes, cuda_pbo_resource));
 
-	RunRayTracer(d_Dest, WINDOW_WIDTH, WINDOW_HEIGHT);
+	RunRayTracer(d_Dest, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
