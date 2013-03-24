@@ -292,7 +292,105 @@ inline float AbsDot(const Vector &v1, const Vector &v2) {
     return fabsf(Dot(v1, v2));
 }
 
+inline Vector Cross(const Vector &v1, const Vector &v2) {
+    float v1x = v1.x, v1y = v1.y, v1z = v1.z;
+    float v2x = v2.x, v2y = v2.y, v2z = v2.z;
+    return Vector((v1y * v2z) - (v1z * v2y),
+                  (v1z * v2x) - (v1x * v2z),
+                  (v1x * v2y) - (v1y * v2x));
+}
 
+
+inline Vector Cross(const Vector &v1, const Normal &v2) {
+    float v1x = v1.x, v1y = v1.y, v1z = v1.z;
+    float v2x = v2.x, v2y = v2.y, v2z = v2.z;
+    return Vector((v1y * v2z) - (v1z * v2y),
+                  (v1z * v2x) - (v1x * v2z),
+                  (v1x * v2y) - (v1y * v2x));
+}
+
+
+inline Vector Cross(const Normal &v1, const Vector &v2) {
+    float v1x = v1.x, v1y = v1.y, v1z = v1.z;
+    float v2x = v2.x, v2y = v2.y, v2z = v2.z;
+    return Vector((v1y * v2z) - (v1z * v2y),
+                  (v1z * v2x) - (v1x * v2z),
+                  (v1x * v2y) - (v1y * v2x));
+}
+
+
+inline Vector Normalize(const Vector &v) { return v / v.Length(); }
+inline void CoordinateSystem(const Vector &v1, Vector *v2, Vector *v3) {
+    if (fabsf(v1.x) > fabsf(v1.y)) {
+        float invLen = 1.f / sqrtf(v1.x*v1.x + v1.z*v1.z);
+        *v2 = Vector(-v1.z * invLen, 0.f, v1.x * invLen);
+    }
+    else {
+        float invLen = 1.f / sqrtf(v1.y*v1.y + v1.z*v1.z);
+        *v2 = Vector(0.f, v1.z * invLen, -v1.y * invLen);
+    }
+    *v3 = Cross(v1, *v2);
+}
+
+
+inline float Distance(const Point &p1, const Point &p2) {
+    return (p1 - p2).Length();
+}
+
+
+inline float DistanceSquared(const Point &p1, const Point &p2) {
+    return (p1 - p2).LengthSquared();
+}
+
+
+inline Point operator*(float f, const Point &p) {
+    return p*f;
+}
+
+
+inline Normal operator*(float f, const Normal &n) {
+    return Normal(f*n.x, f*n.y, f*n.z);
+}
+
+
+inline Normal Normalize(const Normal &n) {
+    return n / n.Length();
+}
+
+
+inline Vector::Vector(const Normal &n)
+  : x(n.x), y(n.y), z(n.z) {
+}
+
+
+inline float Dot(const Normal &n1, const Vector &v2) {
+    return n1.x * v2.x + n1.y * v2.y + n1.z * v2.z;
+}
+
+
+inline float Dot(const Vector &v1, const Normal &n2) {
+    return v1.x * n2.x + v1.y * n2.y + v1.z * n2.z;
+}
+
+
+inline float Dot(const Normal &n1, const Normal &n2) {
+    return n1.x * n2.x + n1.y * n2.y + n1.z * n2.z;
+}
+
+
+inline float AbsDot(const Normal &n1, const Vector &v2) {
+    return fabsf(n1.x * v2.x + n1.y * v2.y + n1.z * v2.z);
+}
+
+
+inline float AbsDot(const Vector &v1, const Normal &n2) {
+    return fabsf(v1.x * n2.x + v1.y * n2.y + v1.z * n2.z);
+}
+
+
+inline float AbsDot(const Normal &n1, const Normal &n2) {
+    return fabsf(n1.x * n2.x + n1.y * n2.y + n1.z * n2.z);
+}
 
 
 #endif // PBRT_CORE_GEOMETRY_H

@@ -201,12 +201,14 @@
     <CudaCompile Include="source\RayTracer_cuda.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\geometry.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\Shape.cpp" />
     <ClCompile Include="source\template_cpu.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\Camera.h" />
     <ClInclude Include="source\geometry.h" />
     <ClInclude Include="source\RayTracer.h" />
     <ClInclude Include="source\Shape.h" />

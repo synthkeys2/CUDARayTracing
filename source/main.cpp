@@ -126,7 +126,7 @@ void ComputeFPS()
         glutSetWindowTitle(fps);
         fpsCount = 0;
 
-        fpsLimit = MAX(1.f, (float)ifps);
+        fpsLimit = (int)MAX(1.f, (float)ifps);
         sdkResetTimer(&hTimer);
     }
 }
