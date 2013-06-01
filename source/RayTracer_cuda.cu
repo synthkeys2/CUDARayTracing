@@ -22,23 +22,32 @@ __global__ void RayTracer(uchar4* dest, const int imageW, const int imageH, floa
 	const int iy = blockIdx.y * blockDim.y + threadIdx.y;
 
 	// Compute the location in the dest array that will be written to
-	const int pixel = imageW * iy + ix;
+	const int pixelIndex = imageW * iy + ix;
+	uchar4 pixelColor;
 
 	// Compute the center of the near plane. All rays will be computed as an offset from this point
 	const float4 lookAt = cameraLocation + cameraForward * nearPlaneDistance;
 
+	// Find where the ray intersects the near plane and create the vector portion of the ray from that
 	const float4 rayMidPoint = lookAt + cameraRight * ((float(ix) / float(imageW) - 0.5f) * viewSize.x) + cameraUp * ((1 - (float(iy) / float(imageH)) - 0.5f) * viewSize.y); 
 	const float4 ray = normalize(rayMidPoint - cameraLocation);
 
+	// Hardcoded sphere
 	const float4 sphereCenter = make_float4(0, 0, 20, 1);
 	const float radius = 10.0f;
 
+	// Hardcoded light
+	//const float4 lightPosition = make_float4(0, 20, 20, 1);
+	const float4 lightPosition = make_float4(20, 30, 35, 1);
+
+	// Calculate the three coefficients in the quadratic equation
 	const float4 rayOriginMinusSphereCenter = cameraLocation - sphereCenter;
 
 	const float A = dot(ray, ray);
 	const float B = 2 * dot(rayOriginMinusSphereCenter, ray);
 	const float C = dot(rayOriginMinusSphereCenter, rayOriginMinusSphereCenter) - radius * radius;
 
+	//Calculate the discriminant
 	const float disc = B * B - 4 * A * C;
 
 	float t = -1.0f;
@@ -83,12 +92,27 @@ __global__ void RayTracer(uchar4* dest, const int imageW, const int imageH, floa
 
 	if(t < 0)
 	{
-		dest[pixel] = make_uchar4(255, 255, 255, 255);
+		pixelColor = make_uchar4(50, 50, 100, 255);
 	}
 	else
 	{
-		dest[pixel] = make_uchar4(100, 0, 100, 255);
+		pixelColor = make_uchar4(100, 0, 100, 255);
+
+		const float4 intersectionPoint = cameraLocation + t * ray;
+		const float4 intersectionNormal = normalize(sphereCenter - intersectionPoint);
+		const float4 intersectionToLight = normalize(lightPosition - intersectionPoint);
+		const float4 halfVector = normalize(intersectionNormal + normalize(intersectionPoint - cameraLocation));
+		float diffuseStrength = dot(intersectionNormal, intersectionToLight);
+		float specularStrength = dot(intersectionNormal, halfVector);
+		diffuseStrength = clamp(diffuseStrength, 0.0f, 1.0f);
+		specularStrength = clamp(specularStrength, 0.0f, 1.0f);
+		specularStrength = pow(specularStrength, 40);
+		pixelColor.x *= (diffuseStrength + specularStrength);
+		pixelColor.y *= (diffuseStrength + specularStrength);
+		pixelColor.z *= (diffuseStrength + specularStrength);
 	}
+
+	dest[pixelIndex] = pixelColor;
 }
 
 
