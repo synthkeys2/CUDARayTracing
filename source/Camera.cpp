@@ -19,7 +19,7 @@ Camera::~Camera()
 
 }
 
-Ray Camera::CreateRayThroughPixel(int x, int y)
-{
-
-}
+//Ray Camera::CreateRayThroughPixel(int x, int y)
+//{
+//
+//}

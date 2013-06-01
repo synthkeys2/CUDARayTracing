@@ -37,7 +37,7 @@ void InitializeOpenGLBuffers(int w, int h);
 GLuint compileASMShader(GLenum program_type, const char *code);
 void CleanUp();
 
-//OpenGL PBO and texture "names"
+// OpenGL PBO and texture "names"
 GLuint gl_PBO, gl_Tex, gl_Shader;
 struct cudaGraphicsResource *cuda_pbo_resource; // handles OpenGL-CUDA exchange
 
@@ -49,6 +49,10 @@ const int frameCheckNumber = 60;
 int fpsCount = 0;        // FPS count for averaging
 int fpsLimit = 15;       // FPS limit for sampling
 unsigned int frameCount = 0;
+
+// Tweakable values
+float4 g_vCameraLocation;
+float g_fNearPlaneDistance;
 
 int main(int argc, char** argv)
 {
@@ -70,7 +74,7 @@ void RenderImage()
 	size_t num_bytes;
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_Dest, &num_bytes, cuda_pbo_resource));
 
-	RunRayTracer(d_Dest, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+	RunRayTracer(d_Dest, WINDOW_WIDTH, WINDOW_HEIGHT, 0, g_vCameraLocation, g_fNearPlaneDistance);
 
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
@@ -157,7 +161,33 @@ void ProcessKeyboard(unsigned char k, int, int)
             printf("Shutting down...\n");
             exit(EXIT_SUCCESS);
             break;
+		case 'w':
+			g_vCameraLocation.z += 1.0f;
+			break;
+		case 's':
+			g_vCameraLocation.z -= 1.0f;
+			break;
+		case 'a':
+			g_vCameraLocation.x -= 1.0f;
+			break;
+		case 'd':
+			g_vCameraLocation.x += 1.0f;
+			break;
+		case GLUT_KEY_UP:
+			g_vCameraLocation.y += 1.0f;
+			break;
+		case GLUT_KEY_DOWN:
+			g_vCameraLocation.y -= 1.0f;
+			break;
+		case '-':
+			g_fNearPlaneDistance -= 1.0f;
+			break;
+		case '=':
+			g_fNearPlaneDistance += 1.0f;
+			break;
    }
+
+   printf("Camera Location: (%f, %f, %f, %f), NearPlaneDistance: %f\n", g_vCameraLocation.x, g_vCameraLocation.y, g_vCameraLocation.z, g_vCameraLocation.w, g_fNearPlaneDistance);
 }
 
 void ProcessMouseClick(int button, int state, int x, int y)
@@ -207,6 +237,10 @@ void InitializeOpenGL(int* argc, char** argv)
     }
 
     printf("OpenGL window created.\n");	
+
+	//Initialize tweakable values
+	g_vCameraLocation = make_float4(CAMERA_LOCATION);
+	g_fNearPlaneDistance = NEAR_PLANE_DISTANCE;
 }
 
 // gl_Shader for displaying floating-point texture
