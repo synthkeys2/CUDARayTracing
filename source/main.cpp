@@ -173,10 +173,10 @@ void ProcessKeyboard(unsigned char k, int, int)
 		case 'd':
 			g_vCameraLocation.x += 1.0f;
 			break;
-		case GLUT_KEY_UP:
+		case 'o':
 			g_vCameraLocation.y += 1.0f;
 			break;
-		case GLUT_KEY_DOWN:
+		case 'p':
 			g_vCameraLocation.y -= 1.0f;
 			break;
 		case '-':
