@@ -153,7 +153,7 @@ void Reshape(int w, int h)
 
 void ProcessKeyboard(unsigned char k, int, int)
 {
-   switch (k)
+	switch (k)
     {
         case '\033':
         case 'q':
@@ -162,28 +162,28 @@ void ProcessKeyboard(unsigned char k, int, int)
             exit(EXIT_SUCCESS);
             break;
 		case 'w':
-			g_vCameraLocation.z += 1.0f;
+			g_vCameraLocation.z += CAMERA_MOVEMENT_DELTA;
 			break;
 		case 's':
-			g_vCameraLocation.z -= 1.0f;
+			g_vCameraLocation.z -= CAMERA_MOVEMENT_DELTA;
 			break;
 		case 'a':
-			g_vCameraLocation.x -= 1.0f;
+			g_vCameraLocation.x -= CAMERA_MOVEMENT_DELTA;
 			break;
 		case 'd':
-			g_vCameraLocation.x += 1.0f;
+			g_vCameraLocation.x += CAMERA_MOVEMENT_DELTA;
 			break;
 		case 'o':
-			g_vCameraLocation.y += 1.0f;
+			g_vCameraLocation.y -= CAMERA_MOVEMENT_DELTA;
 			break;
 		case 'p':
-			g_vCameraLocation.y -= 1.0f;
+			g_vCameraLocation.y += CAMERA_MOVEMENT_DELTA;
 			break;
 		case '-':
-			g_fNearPlaneDistance -= 1.0f;
+			g_fNearPlaneDistance -= NEAR_PLANE_MOVEMENT_DELTA;
 			break;
 		case '=':
-			g_fNearPlaneDistance += 1.0f;
+			g_fNearPlaneDistance += NEAR_PLANE_MOVEMENT_DELTA;
 			break;
    }
 
