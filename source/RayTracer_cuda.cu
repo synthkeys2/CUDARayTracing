@@ -15,6 +15,9 @@
 //#include "helper_cuda.h"
 #include "helper_math.h"
 
+__device__ float SphereIntersection(float4 rayOrigin, float4 rayDirection, float4 spherePosition, float4 sphereColor, float sphereRadius);
+__device__ float QuadatricSolver(float A, float B, float C);
+
 
 __global__ void RayTracer(uchar4* dest, const int imageW, const int imageH, float4 cameraLocation, float4 cameraUp, float4 cameraForward, float4 cameraRight, float nearPlaneDistance, float2 viewSize)
 {
@@ -34,19 +37,59 @@ __global__ void RayTracer(uchar4* dest, const int imageW, const int imageH, floa
 
 	// Hardcoded sphere
 	const float4 sphereCenter = make_float4(0, 0, 40, 1);
+	const float4 sphereColor = make_float4(0.4f, 0, 0.4f, 1.0f);
 	const float radius = 1.0f;
 
 	// Hardcoded light
-	//const float4 lightPosition = make_float4(0, 20, 20, 1);
 	const float4 lightPosition = make_float4(0, 0, -40, 1);
 
+	const float t = SphereIntersection(cameraLocation, ray, sphereCenter, sphereColor, radius);
+
+	if(t < 0)
+	{
+		pixelColor = make_float4(BACKGROUND_COLOR);
+	}
+	else
+	{
+		pixelColor = sphereColor;
+
+		const float4 intersectionPoint = cameraLocation + t * ray;
+		const float4 intersectionNormal = normalize(intersectionPoint - sphereCenter);
+		const float4 lightDirection = normalize(lightPosition - intersectionPoint);
+		const float4 halfVector = normalize(lightDirection + normalize(cameraLocation - intersectionPoint));
+		float diffuseStrength = dot(intersectionNormal, lightDirection);
+		float specularStrength = dot(intersectionNormal, halfVector);
+		diffuseStrength = clamp(diffuseStrength, 0.0f, 1.0f);
+		specularStrength = clamp(specularStrength, 0.0f, 1.0f);
+		specularStrength = pow(specularStrength, 15);
+		float lightCoefficient = diffuseStrength + AMBIENT_STRENGTH;
+		pixelColor.x = clamp(pixelColor.x * lightCoefficient + specularStrength, 0.0f, 1.0f);
+		pixelColor.y = clamp(pixelColor.y * lightCoefficient + specularStrength, 0.0f, 1.0f);
+		pixelColor.z = clamp(pixelColor.z * lightCoefficient + specularStrength, 0.0f, 1.0f);
+	}
+
+	uchar4 pixelColorBytes;
+	pixelColorBytes.x = (unsigned char)(pixelColor.x * 255);
+	pixelColorBytes.y = (unsigned char)(pixelColor.y * 255);
+	pixelColorBytes.z = (unsigned char)(pixelColor.z * 255);
+	pixelColorBytes.w = 255;
+	dest[pixelIndex] = pixelColorBytes;
+}
+
+__device__ float SphereIntersection(float4 rayOrigin, float4 rayDirection, float4 spherePosition, float4 sphereColor, float sphereRadius)
+{
 	// Calculate the three coefficients in the quadratic equation
-	const float4 rayOriginMinusSphereCenter = cameraLocation - sphereCenter;
+	const float4 rayOriginMinusSphereCenter = rayOrigin - spherePosition;
 
-	const float A = dot(ray, ray);
-	const float B = 2 * dot(rayOriginMinusSphereCenter, ray);
-	const float C = dot(rayOriginMinusSphereCenter, rayOriginMinusSphereCenter) - radius * radius;
+	const float A = dot(rayDirection, rayDirection);
+	const float B = 2 * dot(rayOriginMinusSphereCenter, rayDirection);
+	const float C = dot(rayOriginMinusSphereCenter, rayOriginMinusSphereCenter) - sphereRadius * sphereRadius;
 
+	return QuadatricSolver(A, B, C);
+}
+
+__device__ float QuadatricSolver(float A, float B, float C)
+{
 	//Calculate the discriminant
 	const float disc = B * B - 4 * A * C;
 
@@ -90,37 +133,8 @@ __global__ void RayTracer(uchar4* dest, const int imageW, const int imageH, floa
 		}
 	}
 
-	if(t < 0)
-	{
-		pixelColor = make_float4(0.2f, 0.2f, 0.4f, 1.0f);
-	}
-	else
-	{
-		pixelColor = make_float4(0.4f, 0, 0.4f, 1.0f);
-
-		const float4 intersectionPoint = cameraLocation + t * ray;
-		const float4 intersectionNormal = normalize(intersectionPoint - sphereCenter);
-		const float4 lightDirection = normalize(lightPosition - intersectionPoint);
-		const float4 halfVector = normalize(lightDirection + normalize(cameraLocation - intersectionPoint));
-		float diffuseStrength = dot(intersectionNormal, lightDirection);
-		float specularStrength = dot(intersectionNormal, halfVector);
-		diffuseStrength = clamp(diffuseStrength, 0.0f, 1.0f);
-		specularStrength = clamp(specularStrength, 0.0f, 1.0f);
-		specularStrength = pow(specularStrength, 15);
-		float lightCoefficient = diffuseStrength + AMBIENT_STRENGTH;
-		pixelColor.x = clamp(pixelColor.x * lightCoefficient + specularStrength, 0.0f, 1.0f);
-		pixelColor.y = clamp(pixelColor.y * lightCoefficient + specularStrength, 0.0f, 1.0f);
-		pixelColor.z = clamp(pixelColor.z * lightCoefficient + specularStrength, 0.0f, 1.0f);
-	}
-
-	uchar4 pixelColorBytes;
-	pixelColorBytes.x = (unsigned char)(pixelColor.x * 255);
-	pixelColorBytes.y = (unsigned char)(pixelColor.y * 255);
-	pixelColorBytes.z = (unsigned char)(pixelColor.z * 255);
-	pixelColorBytes.w = 255;
-	dest[pixelIndex] = pixelColorBytes;
+	return t;
 }
-
 
 void RunRayTracer(uchar4* dest, const int imageW, const int imageH, const int xThreadsPerBlock, const float4 a_vCameraLocation, const float a_fNearPlaneDistance)
 {

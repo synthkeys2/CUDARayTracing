@@ -26,6 +26,7 @@
 
 // LIGHT CONSTANTS
 #define AMBIENT_STRENGTH			0.2f
+#define BACKGROUND_COLOR			0.2f, 0.2f, 0.4f, 1.0f
 
 #include <vector_types.h>
 
