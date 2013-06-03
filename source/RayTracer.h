@@ -25,7 +25,7 @@
 #define NEAR_PLANE_MOVEMENT_DELTA	10.0f
 
 // LIGHT CONSTANTS
-#define AMBIENT_STRENGTH			0.2f
+#define AMBIENT_STRENGTH			0.25f
 #define BACKGROUND_COLOR			0.2f, 0.2f, 0.4f, 1.0f
 
 #include <vector_types.h>
