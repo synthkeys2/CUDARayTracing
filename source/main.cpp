@@ -23,11 +23,13 @@
 //#include <rendercheck_gl.h>
 
 void RenderImage();
+void UpdateInputs();
 void ComputeFPS();
 
 void Display();
 void Reshape(int w, int h);
 void ProcessKeyboard(unsigned char k, int, int);
+void ProcessKeyboardUp(unsigned char k, int, int);
 void ProcessMouseClick(int button, int state, int x, int y);
 void ProcessMouseMove(int x, int y);
 void TimerEvent(int value);
@@ -52,7 +54,17 @@ unsigned int frameCount = 0;
 
 // Tweakable values
 float4 g_vCameraLocation;
+float4 g_vCameraForward;
+float4 g_vCameraRight;
+float4 g_vCameraUp;
 float g_fNearPlaneDistance;
+
+// Input flags
+bool g_aInputFlags[NUMBER_OF_INPUTS];
+bool g_bMouseLeftDown;
+bool g_bMouseRightDown;
+int g_nLastMouseX;
+int g_nLastMouseY;
 
 int main(int argc, char** argv)
 {
@@ -74,7 +86,7 @@ void RenderImage()
 	size_t num_bytes;
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void **)&d_Dest, &num_bytes, cuda_pbo_resource));
 
-	RunRayTracer(d_Dest, WINDOW_WIDTH, WINDOW_HEIGHT, 0, g_vCameraLocation, g_fNearPlaneDistance);
+	RunRayTracer(d_Dest, WINDOW_WIDTH, WINDOW_HEIGHT, 0, g_vCameraLocation, g_vCameraForward, g_vCameraUp, g_vCameraRight, g_fNearPlaneDistance);
 
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_pbo_resource, 0));
@@ -83,6 +95,8 @@ void RenderImage()
 void Display()
 {
 	sdkStartTimer(&hTimer);
+
+	UpdateInputs();
 
     RenderImage();
 
@@ -115,6 +129,42 @@ void Display()
     glutSwapBuffers();
 
 	ComputeFPS();
+}
+
+void UpdateInputs()
+{
+	if(g_aInputFlags['w'])
+	{
+		g_vCameraLocation += g_vCameraForward * CAMERA_MOVEMENT_DELTA;
+	}
+	if(g_aInputFlags['s'])
+	{
+		g_vCameraLocation -= g_vCameraForward * CAMERA_MOVEMENT_DELTA;
+	}
+	if(g_aInputFlags['a'])
+	{
+		g_vCameraLocation -= g_vCameraRight * CAMERA_MOVEMENT_DELTA;
+	}
+	if(g_aInputFlags['d'])
+	{
+		g_vCameraLocation += g_vCameraRight * CAMERA_MOVEMENT_DELTA;
+	}
+	if(g_aInputFlags['o'])
+	{
+		g_vCameraLocation -= g_vCameraUp * CAMERA_MOVEMENT_DELTA;
+	}
+	if(g_aInputFlags['p'])
+	{
+		g_vCameraLocation += g_vCameraUp * CAMERA_MOVEMENT_DELTA;
+	}
+	if(g_aInputFlags['-'])
+	{
+		g_fNearPlaneDistance -= NEAR_PLANE_MOVEMENT_DELTA;
+	}
+	if(g_aInputFlags['='])
+	{
+		g_fNearPlaneDistance += NEAR_PLANE_MOVEMENT_DELTA;
+	}
 }
 
 void ComputeFPS()
@@ -161,43 +211,67 @@ void ProcessKeyboard(unsigned char k, int, int)
             printf("Shutting down...\n");
             exit(EXIT_SUCCESS);
             break;
-		case 'w':
-			g_vCameraLocation.z += CAMERA_MOVEMENT_DELTA;
-			break;
-		case 's':
-			g_vCameraLocation.z -= CAMERA_MOVEMENT_DELTA;
-			break;
-		case 'a':
-			g_vCameraLocation.x -= CAMERA_MOVEMENT_DELTA;
-			break;
-		case 'd':
-			g_vCameraLocation.x += CAMERA_MOVEMENT_DELTA;
-			break;
-		case 'o':
-			g_vCameraLocation.y -= CAMERA_MOVEMENT_DELTA;
-			break;
-		case 'p':
-			g_vCameraLocation.y += CAMERA_MOVEMENT_DELTA;
-			break;
-		case '-':
-			g_fNearPlaneDistance -= NEAR_PLANE_MOVEMENT_DELTA;
-			break;
-		case '=':
-			g_fNearPlaneDistance += NEAR_PLANE_MOVEMENT_DELTA;
-			break;
+
+		default:
+			g_aInputFlags[k] = true;
    }
 
    printf("Camera Location: (%f, %f, %f, %f), NearPlaneDistance: %f\n", g_vCameraLocation.x, g_vCameraLocation.y, g_vCameraLocation.z, g_vCameraLocation.w, g_fNearPlaneDistance);
 }
 
+void ProcessKeyboardUp(unsigned char k, int, int)
+{
+	g_aInputFlags[k] = false;
+}
+
 void ProcessMouseClick(int button, int state, int x, int y)
 {
+	if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		g_bMouseLeftDown = true;
+	}
+	if(button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		g_bMouseLeftDown = false;
+	}
+	if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	{
+		g_bMouseRightDown = true;
+	}
+	if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
+	{
+		g_bMouseRightDown = false;
+	}
 
+	g_nLastMouseX = x;
+	g_nLastMouseY = y;
 }
 
 void ProcessMouseMove(int x, int y)
 {
+	printf("%d %d\n", x, y);
 
+	float xAngle = (x - g_nLastMouseX) / 90.0f;
+	float yAngle = (y - g_nLastMouseY) / 90.0f;
+
+	clamp(xAngle, 0.0f, 0.3f);
+	clamp(yAngle, 0.0f, 0.3f);
+
+	g_vCameraForward.z = (g_vCameraForward.z * cos((float)xAngle) - (g_vCameraForward.x * sin((float)xAngle)));
+	g_vCameraForward.x = (g_vCameraForward.x * cos((float)xAngle) + (g_vCameraForward.z * sin((float)xAngle)));
+
+	//normalize(g_vCameraForward);
+	//normalize(g_vCameraUp);
+
+	printf("Forward: %f %f %f\n", g_vCameraForward.x, g_vCameraForward.y, g_vCameraForward.z);
+	printf("Up: %f %f %f\n", g_vCameraUp.x, g_vCameraUp.y, g_vCameraUp.z);
+	printf("Right: %f %f %f\n", g_vCameraRight.x, g_vCameraRight.y, g_vCameraRight.z);
+
+	g_vCameraRight = normalize(CRTUtil::cross(g_vCameraUp, g_vCameraForward));
+	g_vCameraForward = normalize(CRTUtil::cross(g_vCameraRight, g_vCameraUp));
+
+	g_nLastMouseX = x;
+	g_nLastMouseY = y;
 }
 
 void TimerEvent(int value)
@@ -219,6 +293,7 @@ void InitializeOpenGL(int* argc, char** argv)
 
 	glutDisplayFunc(Display);
 	glutKeyboardFunc(ProcessKeyboard);
+	glutKeyboardUpFunc(ProcessKeyboardUp);
 	glutMouseFunc(ProcessMouseClick);
 	glutMotionFunc(ProcessMouseMove);
 	glutReshapeFunc(Reshape);
@@ -240,7 +315,18 @@ void InitializeOpenGL(int* argc, char** argv)
 
 	//Initialize tweakable values
 	g_vCameraLocation = make_float4(CAMERA_LOCATION);
+	g_vCameraForward = make_float4(CAMERA_FORWARD);
+	g_vCameraUp = make_float4(CAMERA_UP);
+	g_vCameraRight = make_float4(CAMERA_RIGHT);
 	g_fNearPlaneDistance = NEAR_PLANE_DISTANCE;
+
+	for(int i = 0; i < NUMBER_OF_INPUTS; ++i)
+	{
+		g_aInputFlags[i] = false;
+	}
+
+	g_bMouseLeftDown = false;
+	g_bMouseRightDown = false;
 }
 
 // gl_Shader for displaying floating-point texture

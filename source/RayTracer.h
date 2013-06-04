@@ -20,6 +20,9 @@
 
 // INITIAL CAMERA VALUES
 #define CAMERA_LOCATION				0, 0, 0, 1
+#define CAMERA_FORWARD				0, 0, 1, 0
+#define CAMERA_UP					0, 1, 0, 0
+#define CAMERA_RIGHT				1, 0, 0, 0
 #define NEAR_PLANE_DISTANCE			1500.0f
 #define CAMERA_MOVEMENT_DELTA		0.2f
 #define NEAR_PLANE_MOVEMENT_DELTA	10.0f
@@ -28,9 +31,13 @@
 #define AMBIENT_STRENGTH			0.25f
 #define BACKGROUND_COLOR			0.2f, 0.2f, 0.4f, 1.0f
 
-#include <vector_types.h>
+// INPUT CONSTANTS
+#define NUMBER_OF_INPUTS			256
 
-extern "C" void RunRayTracer(uchar4* dest, const int imageW, const int imageH, const int xThreadsPerBlock, float4 a_vCameraLocation, float a_fNearPlaneDistance);
+#include <vector_types.h>
+#include "LinearAlgebraUtil.h"
+
+extern "C" void RunRayTracer(uchar4* dest, const int imageW, const int imageH, const int xThreadsPerBlock, const float4 a_vCameraPosition, const float4 cameraForward, const float4 cameraUp, const float4 cameraRight, const float a_fNearPlaneDistance);
 
 
 #endif

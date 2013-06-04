@@ -203,6 +203,7 @@
   <ItemGroup>
     <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\geometry.cpp" />
+    <ClCompile Include="source\LinearAlgebraUtil.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\Shape.cpp" />
     <ClCompile Include="source\template_cpu.cpp" />
@@ -210,6 +211,7 @@
   <ItemGroup>
     <ClInclude Include="source\Camera.h" />
     <ClInclude Include="source\geometry.h" />
+    <ClInclude Include="source\LinearAlgebraUtil.h" />
     <ClInclude Include="source\RayTracer.h" />
     <ClInclude Include="source\Shape.h" />
   </ItemGroup>

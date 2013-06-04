@@ -13,7 +13,7 @@
 //#include <stdio.h>
 #include "RayTracer.h"
 //#include "helper_cuda.h"
-#include "helper_math.h"
+
 
 __device__ float SphereIntersection(float4 rayOrigin, float4 rayDirection, float4 spherePosition, float sphereRadius);
 __device__ float QuadatricSolver(float A, float B, float C);
@@ -164,18 +164,14 @@ __device__ float QuadatricSolver(float A, float B, float C)
 	return t;
 }
 
-void RunRayTracer(uchar4* dest, const int imageW, const int imageH, const int xThreadsPerBlock, const float4 a_vcameraPosition, const float a_fNearPlaneDistance)
+void RunRayTracer(uchar4* dest, const int imageW, const int imageH, const int xThreadsPerBlock, const float4 a_vCameraPosition, const float4 a_vCameraForward, const float4 a_vCameraUp, const float4 a_vCameraRight, const float a_fNearPlaneDistance)
 {
 	dim3 numThreads(20, 20);
 	dim3 numBlocks(64, 36);
 
-	float4 cameraUp, cameraForward, cameraRight;
 	float2 viewSize;
 
-	cameraUp = make_float4(0, 1, 0, 0);
-	cameraForward = make_float4(0, 0, 1, 0);
-	cameraRight = make_float4(1, 0, 0, 0);
 	viewSize = make_float2(imageW, imageH);
 
-	RayTracer<<<numBlocks, numThreads>>>(dest, imageW, imageH, a_vcameraPosition, cameraUp, cameraForward, cameraRight, a_fNearPlaneDistance, viewSize);
+	RayTracer<<<numBlocks, numThreads>>>(dest, imageW, imageH, a_vCameraPosition, a_vCameraUp, a_vCameraForward, a_vCameraRight, a_fNearPlaneDistance, viewSize);
 }
